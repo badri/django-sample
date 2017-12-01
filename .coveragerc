@@ -1,0 +1,5 @@
+[run]
+include = django_gitlab_ci/*
+omit = *migrations*, *tests*
+plugins =
+    django_coverage_plugin
