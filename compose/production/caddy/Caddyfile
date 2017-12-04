@@ -1,8 +1,4 @@
 {$DOMAIN_NAME} {
-    redir https://django-ci.lakshminp.com
-}
-
-{$DOMAIN_NAME} {
     proxy / django:5000 {
         header_upstream Host {host}
         header_upstream X-Real-IP {remote}
