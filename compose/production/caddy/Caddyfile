@@ -1,4 +1,4 @@
-www.{$DOMAIN_NAME} {
+{$DOMAIN_NAME} {
     redir https://django-ci.lakshminp.com
 }
 
