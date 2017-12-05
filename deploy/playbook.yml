@@ -1,0 +1,168 @@
+---
+- hosts: all
+  gather_facts: yes
+  become_user: root
+  become: yes
+  remote_user: "{{ server_user }}"
+  vars_files:
+    - config.yml
+    - secrets.yml
+  tasks:
+    - name: Backup database
+      shell: docker-compose -f {{ compose_file }} run postgres backup
+      args:
+        chdir: "{{ project_path }}"
+      tags: deploy
+
+    - name: Add Nodesource apt key.
+      apt_key:
+        url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+        id: "68576280"
+        state: present
+      tags: setup
+
+    - name: add repo for nodesource
+      apt_repository:
+            repo: 'deb https://deb.nodesource.com/node_6.x {{ ansible_distribution_release }} main' 
+            update_cache: yes
+      tags: setup
+
+    - name: install nodejs
+      apt: name=nodejs
+      tags: setup
+
+    - name: Create DB persistence directory
+      file:
+        path: "{{ db_persistence_directory }}"
+        state: directory
+        owner: "{{ server_user }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Create DB backup directory
+      file:
+        path: "{{ db_backup_directory }}"
+        state: directory
+        owner: "{{ server_user }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Create project directory
+      file:
+        path: "{{ project_path }}"
+        state: directory
+        owner: "{{ server_user }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Ensure .ssh directory exists.
+      file: 
+        dest: "{{ vault_key_file | dirname }}"
+        mode: 0700
+        owner: deploy
+        state: directory
+      tags: always
+
+    - name: Install ssh key
+      copy: 
+        content: "{{ vault_ssh_key }}" 
+        dest: "{{ vault_key_file }}"
+        mode: 0600
+        owner: "{{ server_user }}"
+      tags: always
+
+    - name: Setup the Git repo
+      git:
+        repo: "{{ git_repo }}"
+        version: "{{ git_branch }}"
+        dest: "{{ project_path }}"
+        accept_hostkey: yes
+        depth: 1
+        force: yes
+      become_user: "{{ server_user }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Install Npm dependencies
+      npm:
+        path: "{{ project_path }}"
+      register: result
+      failed_when: "result.stderr is defined and 'ERR!' in result.stderr"
+      become_user: "{{ server_user }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: "Install {{ npm_build_tool }}"
+      npm:
+        name: "{{ npm_build_tool }}"
+        global: yes
+      tags:
+        - setup
+
+    - name: Build site assets
+      shell: |
+        {{ npm_build_tool }}
+      args:
+        chdir: "{{ project_path }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Update docker compose file with DB volumes
+      lineinfile:
+        path: "{{ project_path }}/{{ compose_file }}"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: '^(.*)postgres_data:/var/lib/postgresql/data', line: "\\1{{ db_persistence_directory }}:/var/lib/postgresql/data" }
+        - { regexp: '^(.*)postgres_backup:/backups', line: "\\1{{ db_backup_directory }}:/backups" }
+      tags:
+        - deploy
+        - setup
+
+    - name: Create .env file
+      template: 
+        src: templates/dotenv.j2
+        dest: "{{ project_path }}/.env"
+        owner: deploy
+      tags:
+        - deploy
+        - setup
+
+    - name: Build latest containers
+      shell: |
+        docker-compose -f {{ compose_file }} build
+      args:
+        chdir: "{{ project_path }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Boot latest containers
+      shell: |
+        docker-compose -f {{ compose_file }} up -d
+      args:
+        chdir: "{{ project_path }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Run DB migrations
+      shell: docker-compose -f {{ compose_file }} run django python manage.py migrate
+      args:
+        chdir: "{{ project_path }}"
+      tags:
+        - deploy
+        - setup
+
+    - name: Delete ssh key
+      file: 
+        dest: "{{ vault_key_file }}"
+        state: absent
+      tags: always

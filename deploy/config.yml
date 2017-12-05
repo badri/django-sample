@@ -1,0 +1,38 @@
+---
+# security stuff
+update_apt_cache: yes
+server_user: deploy
+# How to get this value?
+# Run 
+# $ mkpasswd --method=sha-512
+# you will be prompted for the password. Enter your password of choice.
+server_user_password: "$6$eRC5Y0BdzmB$f7aKNji0KvJQHcCXgORxsRFrlGQ1TLAhhuHTr0yOyhndVkunk73zqdA5Os3zvoAMEkezkfrgFLWvtPqKnGGXb/" #"54ZjPeUkcCpu2Q"
+user_public_keys:
+  - ~/.ssh/scott-do.pub
+enable_ufw: no
+enable_fail2ban: no
+ufw_allowed_ports:
+  - 22
+  - 80
+  - 443
+shell: "/bin/bash"
+
+# project related stuff
+compose_file: production.yml
+project_path: '/webapps/gitlab-ci'
+
+# git info
+git_repo: 'git@gitlab.com:badri1/django-gitlab-ci.git'
+git_branch: 'master'
+
+# domain stuff
+domain_name: "test.flannelytics.com"
+allowed_hosts:
+  - "test.flannelytics.com"
+
+# DB volumes
+db_persistence_directory: /pg_data
+db_backup_directory: /pg_backup
+
+# Build tool
+npm_build_tool: gulp
