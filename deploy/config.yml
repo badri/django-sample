@@ -33,6 +33,3 @@ allowed_hosts:
 # DB volumes
 db_persistence_directory: /pg_data
 db_backup_directory: /pg_backup
-
-# Build tool
-npm_build_tool: gulp

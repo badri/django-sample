@@ -14,23 +14,6 @@
         chdir: "{{ project_path }}"
       tags: deploy
 
-    - name: Add Nodesource apt key.
-      apt_key:
-        url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
-        id: "68576280"
-        state: present
-      tags: setup
-
-    - name: add repo for nodesource
-      apt_repository:
-            repo: 'deb https://deb.nodesource.com/node_6.x {{ ansible_distribution_release }} main' 
-            update_cache: yes
-      tags: setup
-
-    - name: install nodejs
-      apt: name=nodejs
-      tags: setup
-
     - name: Create DB persistence directory
       file:
         path: "{{ db_persistence_directory }}"
@@ -102,15 +85,6 @@
         name: "{{ npm_build_tool }}"
         global: yes
       tags:
-        - setup
-
-    - name: Build site assets
-      shell: |
-        {{ npm_build_tool }}
-      args:
-        chdir: "{{ project_path }}"
-      tags:
-        - deploy
         - setup
 
     - name: Update docker compose file with DB volumes
