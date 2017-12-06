@@ -20,7 +20,6 @@
         state: directory
         owner: "{{ server_user }}"
       tags:
-        - deploy
         - setup
 
     - name: Create DB backup directory
@@ -29,7 +28,6 @@
         state: directory
         owner: "{{ server_user }}"
       tags:
-        - deploy
         - setup
 
     - name: Create project directory
@@ -81,7 +79,6 @@
         - { regexp: '^(.*)postgres_data:/var/lib/postgresql/data', line: "\\1{{ db_persistence_directory }}:/var/lib/postgresql/data" }
         - { regexp: '^(.*)postgres_backup:/backups', line: "\\1{{ db_backup_directory }}:/backups" }
       tags:
-        - deploy
         - setup
 
     - name: Create .env file
