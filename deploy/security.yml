@@ -65,7 +65,13 @@
       apt: update_cache={{ update_apt_cache }} state=installed pkg=unattended-upgrades
 
     - name: Set up unattended upgrades
-      copy: src=apt_periodic dest=/etc/apt/apt.conf.d/10periodic
+      copy:
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Download-Upgradeable-Packages "1";
+          APT::Periodic::AutocleanInterval "7";
+          APT::Periodic::Unattended-Upgrade "1";
+        dest: /etc/apt/apt.conf.d/10periodic
 
     - name: Automatically remove unused dependencies
       lineinfile: dest=/etc/apt/apt.conf.d/50unattended-upgrades

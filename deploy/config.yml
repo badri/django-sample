@@ -9,8 +9,8 @@ server_user: deploy
 server_user_password: "$6$eRC5Y0BdzmB$f7aKNji0KvJQHcCXgORxsRFrlGQ1TLAhhuHTr0yOyhndVkunk73zqdA5Os3zvoAMEkezkfrgFLWvtPqKnGGXb/" #"54ZjPeUkcCpu2Q"
 user_public_keys:
   - ~/.ssh/scott-do.pub
-enable_ufw: no
-enable_fail2ban: no
+enable_ufw: yes
+enable_fail2ban: yes
 ufw_allowed_ports:
   - 22
   - 80

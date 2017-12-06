@@ -55,6 +55,7 @@
         dest: "{{ vault_key_file }}"
         mode: 0600
         owner: "{{ server_user }}"
+      notify: Delete ssh key
       tags: always
 
     - name: Setup the Git repo
@@ -68,23 +69,6 @@
       become_user: "{{ server_user }}"
       tags:
         - deploy
-        - setup
-
-    - name: Install Npm dependencies
-      npm:
-        path: "{{ project_path }}"
-      register: result
-      failed_when: "result.stderr is defined and 'ERR!' in result.stderr"
-      become_user: "{{ server_user }}"
-      tags:
-        - deploy
-        - setup
-
-    - name: "Install {{ npm_build_tool }}"
-      npm:
-        name: "{{ npm_build_tool }}"
-        global: yes
-      tags:
         - setup
 
     - name: Update docker compose file with DB volumes
@@ -135,8 +119,8 @@
         - deploy
         - setup
 
+  handlers:
     - name: Delete ssh key
       file: 
         dest: "{{ vault_key_file }}"
         state: absent
-      tags: always
