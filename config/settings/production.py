@@ -62,7 +62,7 @@ X_FRAME_OPTIONS = 'DENY'
 # ------------------------------------------------------------------------------
 # Hosts/domain names that are valid for this site
 # See https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['django-ci.lakshminp.com', ])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['muddy-wood-7318.159.65.93.172.nip.io', ])
 # END SITE CONFIGURATION
 
 INSTALLED_APPS += ['gunicorn', ]
